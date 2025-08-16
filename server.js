@@ -182,29 +182,30 @@ app.get('/api/companies', verifyToken, (req, res) => {
 });
 
 //================================================
-// API: Get Modules -- LOGIC RESTRUCTURED FOR CLARITY
+// API: Get Modules -- CASE-INSENSITIVE FIX
 //================================================
 app.get('/api/modules', verifyToken, (req, res) => {
     const userType = req.user.type;
     const userId = req.user.id;
     let sql;
     let queryParams;
-    const trimmedUserType = userType.trim();
+    // Use trim() in case of extra spaces in the database field
+    const trimmedUserType = userType ? userType.trim() : '';
 
     console.log(`Fetching modules for user ID: ${userId} with type: ${trimmedUserType}`);
 
-    // Case 'S': Superuser gets all active modules. No rights check needed.
-    if (trimmedUserType === 'S') {
+    // ✅ FIX: Convert to upper case for case-insensitive comparison
+    if (trimmedUserType.toUpperCase() === 'S') {
         sql = `SELECT MODULE_KID, MODULE_NAME, MODULE_ICONPATH FROM T_MODULE WHERE MODULE_STATUSID = 1 ORDER BY MODULE_NAME ASC;`;
         queryParams = [];
     }
-    // Case 'A': Admin gets modules assigned to the 'A' user type.
-    else if (trimmedUserType === 'A') {
+    // ✅ FIX: Convert to upper case for case-insensitive comparison
+    else if (trimmedUserType.toUpperCase() === 'A') {
         sql = `SELECT DISTINCT m.MODULE_KID, m.MODULE_NAME, m.MODULE_ICONPATH FROM T_MODULE m INNER JOIN T_USERRIGHTS ur ON m.MODULE_KID = ur.USERRIGHTS_MODULEID WHERE ur.USERRIGHTS_USERTYPE = ? AND m.MODULE_STATUSID = 1 ORDER BY m.MODULE_NAME ASC;`;
         queryParams = ['A'];
     }
-    // Case 'U': Standard user gets modules based on their specific submenu rights.
-    else if (trimmedUserType === 'U') {
+    // ✅ FIX: Convert to upper case for case-insensitive comparison
+    else if (trimmedUserType.toUpperCase() === 'U') {
         sql = `SELECT DISTINCT mdl.MODULE_KID, mdl.MODULE_NAME, mdl.MODULE_ICONPATH FROM T_USERRIGHTS ur JOIN T_SUBMENU sm ON ur.USERRIGHTS_SUBMENUID = sm.SUBMENU_KID JOIN T_MENU m ON sm.SUBMENU_MENUID = m.MENU_KID JOIN T_MODULE mdl ON m.MENU_MODULEID = mdl.MODULE_KID WHERE ur.USERRIGHTS_USERID = ? AND mdl.MODULE_STATUSID = 1 AND m.MENU_STATUSID = 1 AND sm.SUBMENU_STATUSID = 1 ORDER BY mdl.MODULE_NAME ASC;`;
         queryParams = [userId];
     }
@@ -224,7 +225,7 @@ app.get('/api/modules', verifyToken, (req, res) => {
 });
 
 //================================================
-// API: Get Menus for a Module -- CRITICAL LOGIC FIX
+// API: Get Menus for a Module -- CASE-INSENSITIVE FIX
 //================================================
 app.get('/api/menus', verifyToken, (req, res) => {
     const moduleId = req.query.moduleId;
@@ -235,11 +236,11 @@ app.get('/api/menus', verifyToken, (req, res) => {
         return res.status(400).json({ error: "moduleId is required" });
     }
 
-    const trimmedUserType = userType.trim();
+    const trimmedUserType = userType ? userType.trim() : '';
     console.log(`Fetching menus for module ${moduleId} for user ${userId} (Type: ${trimmedUserType})`);
 
-    // Case 'S': Superuser. No rights check. Gets all menus for the module.
-    if (trimmedUserType === 'S') {
+    // ✅ FIX: Convert to upper case for a reliable, case-insensitive check.
+    if (trimmedUserType.toUpperCase() === 'S') {
         console.log(`Superuser access: Fetching all menus for module ${moduleId}.`);
         const menuSql = `
             SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
@@ -256,8 +257,8 @@ app.get('/api/menus', verifyToken, (req, res) => {
             return res.json(menuResults);
         });
     }
-    // Case 'A': Admin. Must have rights to the module itself.
-    else if (trimmedUserType === 'A') {
+    // ✅ FIX: Convert to upper case for case-insensitive comparison
+    else if (trimmedUserType.toUpperCase() === 'A') {
         const verificationSql = `SELECT 1 FROM T_USERRIGHTS WHERE USERRIGHTS_USERTYPE = ? AND USERRIGHTS_MODULEID = ? LIMIT 1`;
         db.query(verificationSql, ['A', moduleId], (err, rightsResults) => {
             if (err) {
@@ -267,7 +268,6 @@ app.get('/api/menus', verifyToken, (req, res) => {
                 console.warn(`ACCESS DENIED: Admin user type attempted to access module ${moduleId} without rights.`);
                 return res.status(403).json({ error: "Access Denied." });
             }
-            // If rights exist, get all menus for that module
             const menuSql = `
                 SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
                 FROM T_MENU m
@@ -283,8 +283,8 @@ app.get('/api/menus', verifyToken, (req, res) => {
             });
         });
     }
-    // Case 'U': Standard User. Must have rights to specific submenus.
-    else if (trimmedUserType === 'U') {
+    // ✅ FIX: Convert to upper case for case-insensitive comparison
+    else if (trimmedUserType.toUpperCase() === 'U') {
         const sql = `
             SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
             FROM T_MENU m
