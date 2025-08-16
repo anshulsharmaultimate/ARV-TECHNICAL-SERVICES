@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load .env variables
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
@@ -112,7 +112,7 @@ app.post('/api/login', (req, res) => {
     const userSql = "SELECT USER_KID, USER_NAME, USER_PASSWORD, USER_TYPE FROM T_USER WHERE USER_LOGIN = ?";
     db.query(userSql, [loginId], (userErr, userResults) => {
         if (userErr) { return res.status(500).json({ message: 'Internal server error.' }); }
-        if (userResults.length === 0) { return res.status(401).json({ message: 'Invalid credentials. Please try again.' });}
+        if (userResults.length === 0) { return res.status(401).json({ message: 'Invalid credentials. Please try again.' }); }
         const user = userResults[0];
 
         bcrypt.compare(password, user.USER_PASSWORD, (compareErr, isMatch) => {
@@ -159,12 +159,13 @@ app.get('/api/companies', verifyToken, (req, res) => {
     });
 });
 
-
+//================================================
+// API: Get Modules -- UPDATED LOGIC
+//================================================
 app.get('/api/modules', verifyToken, (req, res) => {
     const userType = req.user.type;
     const userId = req.user.id;
-    const trimmedUserType = (userType || '').trim();
-    const finalUserType = trimmedUserType.toUpperCase();
+    const finalUserType = (userType || '').trim().toUpperCase();
     
     console.log(`[API /modules] Fetching for User: ${userId}, Type: '${finalUserType}'`);
 
@@ -176,13 +177,9 @@ app.get('/api/modules', verifyToken, (req, res) => {
         sql = `SELECT MODULE_KID, MODULE_NAME, MODULE_ICONPATH FROM T_MODULE WHERE MODULE_STATUSID = 1 ORDER BY MODULE_NAME ASC;`;
         queryParams = [];
     }
-    else if (finalUserType === 'A') {
-        console.log("[API /modules] Matched 'A'. Getting modules by type.");
-        sql = `SELECT DISTINCT m.MODULE_KID, m.MODULE_NAME, m.MODULE_ICONPATH FROM T_MODULE m INNER JOIN T_USERRIGHTS ur ON m.MODULE_KID = ur.USERRIGHTS_MODULEID WHERE ur.USERRIGHTS_USERTYPE = ? AND m.MODULE_STATUSID = 1 ORDER BY m.MODULE_NAME ASC;`;
-        queryParams = ['A'];
-    }
-    else if (finalUserType === 'U') {
-        console.log("[API /modules] Matched 'U'. Getting modules by user ID.");
+    // ✅ UPDATED LOGIC: Treat 'A' and 'U' the same way, checking by specific User ID.
+    else if (finalUserType === 'A' || finalUserType === 'U') {
+        console.log(`[API /modules] Matched '${finalUserType}'. Getting modules by user ID.`);
         sql = `SELECT DISTINCT mdl.MODULE_KID, mdl.MODULE_NAME, mdl.MODULE_ICONPATH FROM T_USERRIGHTS ur JOIN T_SUBMENU sm ON ur.USERRIGHTS_SUBMENUID = sm.SUBMENU_KID JOIN T_MENU m ON sm.SUBMENU_MENUID = m.MENU_KID JOIN T_MODULE mdl ON m.MENU_MODULEID = mdl.MODULE_KID WHERE ur.USERRIGHTS_USERID = ? AND mdl.MODULE_STATUSID = 1 AND m.MENU_STATUSID = 1 AND sm.SUBMENU_STATUSID = 1 ORDER BY mdl.MODULE_NAME ASC;`;
         queryParams = [userId];
     }
@@ -201,7 +198,7 @@ app.get('/api/modules', verifyToken, (req, res) => {
 });
 
 //================================================
-// API: Get Menus for a Module -- ENHANCED LOGGING
+// API: Get Menus for a Module -- UPDATED LOGIC
 //================================================
 app.get('/api/menus', verifyToken, (req, res) => {
     const moduleId = req.query.moduleId;
@@ -212,13 +209,11 @@ app.get('/api/menus', verifyToken, (req, res) => {
         return res.status(400).json({ error: "moduleId is required" });
     }
 
-    const trimmedUserType = (userType || '').trim();
-    const finalUserType = trimmedUserType.toUpperCase();
-
+    const finalUserType = (userType || '').trim().toUpperCase();
     console.log(`[API /menus] Fetching for Module: ${moduleId}, User: ${userId}, Type: '${finalUserType}'`);
 
     if (finalUserType === 'S') {
-        console.log(`[API /menus] LOGIC MATCH: User type is 'S'. Granting Superuser access and bypassing rights check.`);
+        console.log(`[API /menus] LOGIC MATCH: User type is 'S'. Granting Superuser access.`);
         const menuSql = `
             SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
             FROM T_MENU m
@@ -234,33 +229,9 @@ app.get('/api/menus', verifyToken, (req, res) => {
             return res.json(menuResults);
         });
     }
-    else if (finalUserType === 'A') {
-        console.log(`[API /menus] LOGIC MATCH: User type is 'A'. Verifying module-level rights.`);
-        const verificationSql = `SELECT 1 FROM T_USERRIGHTS WHERE USERRIGHTS_USERTYPE = ? AND USERRIGHTS_MODULEID = ? LIMIT 1`;
-        db.query(verificationSql, ['A', moduleId], (err, rightsResults) => {
-            if (err) { return res.status(500).json({ error: "Error checking rights for admin" }); }
-
-            if (rightsResults.length === 0) {
-                console.warn(`[API /menus] ACCESS DENIED: Admin user type has no rights for module ${moduleId}.`);
-                return res.status(403).json({ error: "Access Denied." });
-            }
-            
-            console.log(`[API /menus] Rights verified for 'A'. Fetching all menus for module.`);
-            const menuSql = `
-                SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
-                FROM T_MENU m
-                LEFT JOIN T_SUBMENU s ON m.MENU_KID = s.SUBMENU_MENUID AND s.SUBMENU_STATUSID = 1
-                WHERE m.MENU_MODULEID = ? AND m.MENU_STATUSID = 1
-                ORDER BY m.MENU_KID, s.SUBMENU_KID;
-            `;
-            db.query(menuSql, [moduleId], (menuErr, menuResults) => {
-                if (menuErr) { return res.status(500).json({ error: "Error fetching menus for admin" }); }
-                return res.json(menuResults);
-            });
-        });
-    }
-    else if (finalUserType === 'U') {
-        console.log(`[API /menus] LOGIC MATCH: User type is 'U'. Verifying submenu-level rights.`);
+    // ✅ UPDATED LOGIC: Treat 'A' and 'U' the same way, checking for specific submenus by User ID.
+    else if (finalUserType === 'A' || finalUserType === 'U') {
+        console.log(`[API /menus] LOGIC MATCH: User type is '${finalUserType}'. Verifying rights by User ID.`);
         const sql = `
             SELECT m.MENU_KID, m.MENU_NAME, m.MENU_TYPE, s.SUBMENU_KID, s.SUBMENU_NAME, s.SUBMENU_REDIRECTPAGE
             FROM T_MENU m
@@ -271,7 +242,7 @@ app.get('/api/menus', verifyToken, (req, res) => {
         `;
         db.query(sql, [moduleId, userId], (err, results) => {
             if (err) {
-                console.error("[API /menus] DB error for user type U:", err);
+                console.error(`[API /menus] DB error for user type ${finalUserType}:`, err);
                 return res.status(500).json({ error: "Internal server error" });
             }
             return res.json(results);
@@ -282,6 +253,7 @@ app.get('/api/menus', verifyToken, (req, res) => {
         return res.status(403).json({ error: "Access Denied. Your user role is not configured." });
     }
 });
+
 
 app.post('/api/user/switch-company', verifyToken, (req, res) => {
     const { newCompanyKid } = req.body;
