@@ -20,249 +20,39 @@
             --input-bg-color: #fdfdfd;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(rgba(236, 240, 241, 0.9), rgba(236, 240, 241, 0.9)),
-                        url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative; 
-            overflow: hidden; 
-        }
-        
-        .bg-shape {
-            position: absolute;
-            border-radius: 50%;
-            z-index: 0; 
-            filter: blur(90px); 
-        }
-
-        .shape1 {
-            width: 450px;
-            height: 450px;
-            background-color: rgba(41, 128, 185, 0.2); 
-            top: -150px;
-            left: -150px;
-        }
-
-        .shape2 {
-            width: 350px;
-            height: 350px;
-            background-color: rgba(127, 140, 141, 0.2);
-            bottom: -100px;
-            right: -100px;
-        }
-
-        .login-card {
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px); 
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 420px;
-            animation: fadeIn 0.5s ease-in-out;
-            position: relative; 
-            z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-top: none;
-            border-bottom: none;
-            overflow: hidden;
-        }
-
-        .login-card-content {
-            padding: 25px 40px;
-        }
-        
-        .login-card::before, 
-        .login-card::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background-color: var(--primary-color);
-        }
-
-        .login-card::before {
-            top: 0;
-        }
-
-        .login-card::after {
-            bottom: 0;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        
-        .logo-container {
-            margin-bottom: 10px;
-            margin-top: -25px; 
-        }
-
-        .brand-logo {
-            max-width: 200px;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-        }
-
-        .login-header h2 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-top: 5px;
-            margin-bottom: 0;
-        }
-        
-        .login-header p {
-            font-size: 1rem;
-            color: #7f8c8d;
-        }
-
-        .form-group {
-            margin-bottom: 25px; 
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.2s ease-in-out;
-            background-color: var(--input-bg-color);
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2);
-            background-color: #fff;
-        }
-        
-        .password-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .password-wrapper .form-control {
-            padding-right: 45px;
-        }
-
-        .password-toggle-icon {
-            position: absolute;
-            right: 15px;
-            cursor: pointer;
-            color: var(--secondary-color);
-            transition: color 0.2s;
-        }
-        
-        .password-toggle-icon:hover {
-            color: var(--primary-color);
-        }
-
-        .password-toggle-icon svg {
-            width: 20px;
-            height: 20px;
-        }
-        
-        .btn {
-            padding: 12px 22px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            text-decoration: none;
-            text-align: center;
-            color: var(--light-text-color);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            margin-top: 10px; 
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #3498db;
-        }
-        
-        .error-message {
-            color: var(--danger-color);
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            min-height: 1.2em;
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-
-            .login-card-content {
-                padding: 20px 25px;
-            }
-
-            .brand-logo {
-                max-width: 150px;
-            }
-
-            .login-header h2 {
-                font-size: 1.2rem;
-            }
-
-            .login-header p {
-                font-size: 0.9rem;
-            }
-        }
+        /* (Your CSS remains unchanged) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(rgba(236, 240, 241, 0.9), rgba(236, 240, 241, 0.9)), url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed; background-size: cover; color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; position: relative; overflow: hidden; }
+        .bg-shape { position: absolute; border-radius: 50%; z-index: 0; filter: blur(90px); }
+        .shape1 { width: 450px; height: 450px; background-color: rgba(41, 128, 185, 0.2); top: -150px; left: -150px; }
+        .shape2 { width: 350px; height: 350px; background-color: rgba(127, 140, 141, 0.2); bottom: -100px; right: -100px; }
+        .login-card { background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 12px; box-shadow: var(--shadow); width: 100%; max-width: 420px; animation: fadeIn 0.5s ease-in-out; position: relative; z-index: 1; border: 1px solid rgba(255, 255, 255, 0.2); border-top: none; border-bottom: none; overflow: hidden; }
+        .login-card-content { padding: 25px 40px; }
+        .login-card::before, .login-card::after { content: ''; position: absolute; left: 0; width: 100%; height: 5px; background-color: var(--primary-color); }
+        .login-card::before { top: 0; }
+        .login-card::after { bottom: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .login-header { text-align: center; margin-bottom: 10px; }
+        .logo-container { margin-bottom: 10px; margin-top: -25px; }
+        .brand-logo { max-width: 200px; height: auto; display: block; margin: 0 auto; }
+        .login-header h2 { font-size: 1.3rem; font-weight: 600; color: var(--text-color); margin-top: 5px; margin-bottom: 0; }
+        .login-header p { font-size: 1rem; color: #7f8c8d; }
+        .form-group { margin-bottom: 25px; position: relative; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #555; }
+        .form-control { width: 100%; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease-in-out; background-color: var(--input-bg-color); }
+        .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2); background-color: #fff; }
+        .password-wrapper { position: relative; display: flex; align-items: center; }
+        .password-wrapper .form-control { padding-right: 45px; }
+        .password-toggle-icon { position: absolute; right: 15px; cursor: pointer; color: var(--secondary-color); transition: color 0.2s; }
+        .password-toggle-icon:hover { color: var(--primary-color); }
+        .password-toggle-icon svg { width: 20px; height: 20px; }
+        .btn { padding: 12px 22px; font-size: 1.05rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease-in-out; text-decoration: none; text-align: center; color: var(--light-text-color); display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); }
+        .btn:active { transform: translateY(0); box-shadow: none; }
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #3498db; }
+        .error-message { color: var(--danger-color); text-align: center; margin-top: 15px; font-size: 0.9rem; font-weight: 500; min-height: 1.2em; }
+        @media (max-width: 480px) { body { padding: 10px; } .login-card-content { padding: 20px 25px; } .brand-logo { max-width: 150px; } .login-header h2 { font-size: 1.2rem; } .login-header p { font-size: 0.9rem; } }
     </style>
 </head>
 <body>
@@ -272,7 +62,7 @@
         <div class="login-card-content">
             <div class="login-header">
                 <div class="logo-container">
-                    <img src="IMAGE/Brand_logo_for_login.png" alt="ZeroDrift ERP Logo" class="brand-logo">
+                    <img src="/IMAGE/Brand_logo_for_login.png" alt="ZeroDrift ERP Logo" class="brand-logo">
                     <h2>ZeroDrift ERP</h2>
                 </div>
                 <p>Log in to start your session</p>
@@ -288,8 +78,8 @@
                         <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
                         <span id="togglePassword" class="password-toggle-icon">
                             <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="display: none;">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243l-4.243-4.243" />
@@ -335,37 +125,28 @@
                 const password = document.getElementById('password').value;
 
                 try {
-                    // ✨ NEW: Subscription Validation Logic ✨
-                    // First, check if the subscription is valid based on the Login ID.
+                    // Subscription Validation Logic
                     const subResponse = await fetch(`${BASE_URL}/api/check-subscription`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ loginId }),
                     });
-
                     const subData = await subResponse.json();
-
                     if (!subResponse.ok) {
-                        // If the subscription check endpoint itself has an error
                         throw new Error(subData.message || 'Could not verify subscription status.');
                     }
-                    
                     if (subData.isExpired) {
-                        // If the server confirms the subscription is expired, show the message and stop.
-                        errorMessageDiv.textContent = 'Your ERP Subscription Validity is Expired, Please contact your administrator.';
-                        return; // Halt the login process
+                        errorMessageDiv.textContent = 'Your ERP Subscription has expired. Please contact your administrator.';
+                        return;
                     }
                     
-                    // ✨ ORIGINAL: Login Attempt Logic ✨
-                    // If the subscription is not expired, proceed with the actual login attempt.
+                    // Login Attempt Logic
                     const response = await fetch(`${BASE_URL}/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', },
                         body: JSON.stringify({ loginId, password }),
                     });
-
                     const data = await response.json();
-
                     if (!response.ok) {
                         throw new Error(data.message || 'An unknown error occurred.');
                     }
@@ -374,7 +155,6 @@
                     window.location.replace('/index.html');
 
                 } catch (error) {
-                    // This single catch block will handle errors from both the subscription check and the login attempt.
                     errorMessageDiv.textContent = error.message;
                     console.error('Login process failed:', error);
                 }
@@ -382,5 +162,4 @@
         });
     </script>
 </body>
-
 </html>
