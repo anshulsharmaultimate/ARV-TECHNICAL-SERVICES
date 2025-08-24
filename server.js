@@ -61,7 +61,7 @@ app.post('/api/check-subscription', async (req, res) => {
         const sql = "SELECT TIMEPERIOD_ENDDATETIME FROM T_TIMEPERIOD ORDER BY TIMEPERIOD_KID DESC LIMIT 1";
         const [results] = await db.query(sql);
         if (results.length === 0) return res.status(200).json({ isExpired: true });
-        
+
         const subscriptionEndDate = new Date(results[0].TIMEPERIOD_ENDDATETIME);
         const isExpired = subscriptionEndDate < new Date();
         console.log(`Subscription check: End date is ${subscriptionEndDate.toISOString()}. Status: ${isExpired ? 'EXPIRED' : 'ACTIVE'}`);
@@ -78,15 +78,20 @@ app.post('/api/login', async (req, res) => {
         return res.status(400).json({ message: 'Login ID and Password are required.' });
     }
     try {
-        const userSql = "SELECT USER_KID, USER_NAME, USER_PASSWORD, USER_TYPE FROM T_USER WHERE USER_LOGIN = ?";
+        // ===================================================================
+        // == UPDATED QUERY HERE ==
+        // ===================================================================
+        const userSql = "SELECT USER_KID, USER_NAME, USER_PASSWORD, USER_TYPE FROM T_USER WHERE USER_LOGIN = ? AND USER_STATUSID <> '2'";
         const [userResults] = await db.query(userSql, [loginId]);
+        // ===================================================================
+
         if (userResults.length === 0) {
-            return res.status(401).json({ message: 'Invalid credentials. Please try again.' });
+            return res.status(401).json({ message: 'Invalid credentials or account is inactive.' });
         }
         const user = userResults[0];
         const isMatch = await bcrypt.compare(password, user.USER_PASSWORD);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials. Please try again.' });
+            return res.status(401).json({ message: 'Invalid credentials or account is inactive.' });
         }
         let companyId;
         if (user.USER_TYPE === 'S') {
@@ -195,7 +200,7 @@ app.get('/api/modules', verifyToken, async (req, res) => {
     } else {
         return res.json([]);
     }
-    
+
     try {
         const [results] = await db.query(sql, queryParams);
         res.json(results);
@@ -241,7 +246,7 @@ app.get('/api/menus', verifyToken, async (req, res) => {
     } else {
         return res.status(403).json({ error: "Access Denied. Your user role is not configured." });
     }
-    
+
     try {
         const [results] = await db.query(sql, queryParams);
         res.json(results);
@@ -282,36 +287,45 @@ app.put('/api/users/change-password', verifyToken, async (req, res) => {
     }
 });
 
-// ===================================================================
-// == NOTIFICATION ROUTES START HERE ==
-// ===================================================================
+app.get('/api/contact-directory', verifyToken, async (req, res) => {
+    const companyId = req.user.companyId;
+    if (!companyId) {
+        return res.status(403).json({ message: "Forbidden: No company associated with your session." });
+    }
+    console.log(`[API /contact-directory] Fetching for Company: ${companyId}`);
+    try {
+        const sql = `
+            SELECT 
+                CONTACTDIR_NAME, CONTACTDIR_MOBILE, CONTACTDIR_EMAIL, 
+                CONTACTDIR_ADDRESS, CONTACTDIR_REMARK 
+            FROM T_CONTACTDIR 
+            WHERE CONTACTDIR_COMPANYID = ? 
+            ORDER BY CONTACTDIR_NAME ASC;
+        `;
+        const [contacts] = await db.query(sql, [companyId]);
+        res.status(200).json(contacts);
+    } catch (err) {
+        console.error("Error fetching contact directory:", err);
+        res.status(500).json({ message: 'Internal server error while fetching contacts.' });
+    }
+});
 
 app.get('/api/notifications', verifyToken, async (req, res) => {
     const userId = req.user.id;
     const companyId = req.user.companyId;
-
     console.log(`[API /notifications] Fetching for User: ${userId}, Company: ${companyId}`);
-
     try {
-        // ========== MODIFIED SQL QUERY START ==========
-        // This query now joins with T_USER to get the sender's name
-        // and also selects the NOTIFICATION_EDATETIME.
         const sql = `
             SELECT 
-                n.NOTIFICATION_KID, 
-                n.NOTIFICATION_SUBJECT, 
-                n.NOTIFICATION_MESSAGE, 
-                n.NOTIFICATION_READYN,
-                n.NOTIFICATION_EDATETIME,
-                u.USER_NAME AS FROM_USERNAME
+                n.NOTIFICATION_KID, n.NOTIFICATION_SUBJECT, n.NOTIFICATION_MESSAGE, 
+                n.NOTIFICATION_READYN, n.NOTIFICATION_EDATETIME, u.USER_NAME AS FROM_USERNAME
             FROM T_NOTIFICATION n
             LEFT JOIN T_USER u ON n.NOTIFICATION_FROMUSERID = u.USER_KID
             WHERE n.NOTIFICATION_TOUSERID = ? AND n.NOTIFICATION_COMPANYID = ?
             ORDER BY n.NOTIFICATION_KID DESC 
-            LIMIT 20;
+            LIMIT 50;
         `;
-        // ========== MODIFIED SQL QUERY END ==========
-        
+
         const [notifications] = await db.query(sql, [userId, companyId]);
         res.status(200).json(notifications);
     } catch (err) {
@@ -323,13 +337,10 @@ app.get('/api/notifications', verifyToken, async (req, res) => {
 app.put('/api/notifications/read', verifyToken, async (req, res) => {
     const { notificationId } = req.body;
     const userId = req.user.id;
-
     if (!notificationId) {
         return res.status(400).json({ message: 'Notification ID is required.' });
     }
-
     console.log(`[API /notifications/read] Marking notification ${notificationId} as read for user ${userId}`);
-
     try {
         const sql = `
             UPDATE T_NOTIFICATION 
@@ -341,7 +352,6 @@ app.put('/api/notifications/read', verifyToken, async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Notification not found or you do not have permission to update it.' });
         }
-
         res.status(200).json({ message: 'Notification marked as read.' });
     } catch (err) {
         console.error("Error marking notification as read:", err);
@@ -349,9 +359,200 @@ app.put('/api/notifications/read', verifyToken, async (req, res) => {
     }
 });
 
-// ===================================================================
-// == NOTIFICATION ROUTES END HERE ==
-// ===================================================================
+app.get('/api/active-employees', verifyToken, async (req, res) => {
+    console.log(`[API /api/active-employees] Fetching list of active employees.`);
+    try {
+        const sql = `
+            SELECT 
+                EMPLOYEE_KID, 
+                NAMEPFX_NAME, 
+                EMPLOYEE_FIRSTNAME, 
+                EMPLOYEE_MIDDLENAME, 
+                EMPLOYEE_LASTNAME
+            FROM T_EMPLOYEE
+            JOIN T_NAMEPFX ON NAMEPFX_KID = EMPLOYEE_NAMEPFXID
+            WHERE EMPLOYEE_STATUSID = '1'
+            ORDER BY EMPLOYEE_FIRSTNAME ASC;
+        `;
+
+        const [employees] = await db.query(sql);
+
+        const formattedEmployees = employees.map(emp => {
+            const middleName = emp.EMPLOYEE_MIDDLENAME ? ` ${emp.EMPLOYEE_MIDDLENAME}` : '';
+            const fullName = `${emp.NAMEPFX_NAME || ''} ${emp.EMPLOYEE_FIRSTNAME || ''}${middleName} ${emp.EMPLOYEE_LASTNAME || ''}`.replace(/\s+/g, ' ').trim();
+
+            return {
+                employee_id: emp.EMPLOYEE_KID,
+                full_name: fullName
+            };
+        });
+
+        res.status(200).json(formattedEmployees);
+
+    } catch (err) {
+        console.error("Error fetching active employees:", err);
+        res.status(500).json({ message: 'Internal server error while fetching employees.' });
+    }
+});
+
+app.get('/api/theme', verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    console.log(`[API /theme] Fetching theme for User ID: ${userId}`);
+
+    try {
+        const sql = `
+            SELECT 
+                THEME_NAVBARBG, THEME_SIDEBARBG, THEME_MODULEBG, THEME_FOOTERBG,
+                THEME_MENUSUBMENUBG, THEME_CURRMODULEBGANDFONTCLR, THEME_MTRSCLR,
+                THEME_NAVBARFONTCLR, THEME_MENUHEADERBG 
+            FROM T_THEME
+            WHERE THEME_KID = (
+                COALESCE(
+                    (SELECT USERTHEME_THEMEID FROM T_USERTHEME WHERE USERTHEME_USERID = ?),
+                    (SELECT THEME_KID FROM T_THEME WHERE THEME_DEFAULTYN = 'Y' LIMIT 1)
+                )
+            );
+        `;
+
+        const [results] = await db.query(sql, [userId]);
+
+        if (results.length === 0) {
+            console.error(`No theme found for User ID: ${userId}, and no default theme is configured.`);
+            return res.status(404).json({ message: 'No theme could be loaded. Please contact support.' });
+        }
+        res.status(200).json(results[0]);
+    } catch (err) {
+        console.error("Error fetching theme:", err);
+        res.status(500).json({ message: 'Internal server error while fetching theme.' });
+    }
+});
+
+app.get('/api/themes', verifyToken, async (req, res) => {
+    console.log(`[API /themes] Fetching all themes list with colors.`);
+    try {
+        const sql = "SELECT THEME_KID, THEME_NAME, THEME_NAVBARBG FROM T_THEME ORDER BY THEME_NAME ASC";
+        const [themes] = await db.query(sql);
+        res.status(200).json(themes);
+    } catch (err) {
+        console.error("Error fetching all themes:", err);
+        res.status(500).json({ message: 'Internal server error fetching themes list.' });
+    }
+});
+
+app.post('/api/user/theme', verifyToken, async (req, res) => {
+    const userId = req.user.id;
+    const { themeId } = req.body;
+
+    if (!themeId) {
+        return res.status(400).json({ message: "Theme ID is required." });
+    }
+    console.log(`[API /user/theme] User ${userId} selected Theme ${themeId}`);
+
+    try {
+        const sql = `
+            INSERT INTO T_USERTHEME (USERTHEME_USERID, USERTHEME_THEMEID, USERTHEME_EDATETIME, USERTHEME_LDATETIME)
+            VALUES (?, ?, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+            USERTHEME_THEMEID = VALUES(USERTHEME_THEMEID),
+            USERTHEME_LDATETIME = NOW();
+        `;
+        await db.query(sql, [userId, themeId]);
+        res.status(200).json({ message: 'Theme updated successfully!' });
+    } catch (err) {
+        console.error("Error updating user theme:", err);
+        res.status(500).json({ message: 'Failed to update theme.' });
+    }
+});
+
+
+app.post('/api/users', verifyToken, async (req, res) => {
+    const {
+        user_category, employee_id, username, login_name,
+        mobile_no, email_id, password, user_type_dropdown
+    } = req.body;
+    const creatorUserId = req.user.id;
+
+    if (!username || !login_name || !password || !user_type_dropdown || !user_category) {
+        return res.status(400).json({ message: 'Missing required fields. Please fill out the form completely.' });
+    }
+    if (user_category === 'Internal' && !employee_id) {
+        return res.status(400).json({ message: 'Employee is required for internal users.' });
+    }
+
+    if (mobile_no) {
+        const mobileRegex = /^[6-9]\d{9}$/;
+        if (!mobileRegex.test(mobile_no)) {
+            return res.status(400).json({ message: 'Invalid mobile number. It must be 10 digits starting with 6, 7, 8, or 9.' });
+        }
+    }
+    if (email_id) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email_id)) {
+            return res.status(400).json({ message: 'Invalid email address format.' });
+        }
+    }
+
+    try {
+        if (user_category === 'Internal' && employee_id) {
+            const checkEmployeeSql = "SELECT USER_KID FROM T_USER WHERE USER_EMPLOYEEID = ? AND USER_EMPLOYEEID != 0";
+            const [existingEmpUsers] = await db.query(checkEmployeeSql, [employee_id]);
+            if (existingEmpUsers.length > 0) {
+                return res.status(409).json({ message: 'This employee is already registered as a user.' });
+            }
+        }
+
+        const checkLoginSql = "SELECT USER_KID FROM T_USER WHERE USER_LOGIN = ?";
+        const [existingLoginUsers] = await db.query(checkLoginSql, [login_name]);
+        if (existingLoginUsers.length > 0) {
+            return res.status(409).json({ message: 'This Login Name is already taken. Please choose another.' });
+        }
+
+        if (mobile_no) {
+            const checkMobileSql = "SELECT USER_KID FROM T_USER WHERE USER_MOBILENO = ?";
+            const [existingMobileUsers] = await db.query(checkMobileSql, [mobile_no]);
+            if (existingMobileUsers.length > 0) {
+                return res.status(409).json({ message: 'This Mobile Number is already registered.' });
+            }
+        }
+        if (email_id) {
+            const checkEmailSql = "SELECT USER_KID FROM T_USER WHERE USER_EMAILID = ?";
+            const [existingEmailUsers] = await db.query(checkEmailSql, [email_id]);
+            if (existingEmailUsers.length > 0) {
+                return res.status(409).json({ message: 'This Email ID is already registered.' });
+            }
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userCategoryCode = user_category === 'Internal' ? 'I' : 'E';
+        const userTypeCode = user_type_dropdown.charAt(0).toUpperCase();
+        const employeeId = user_category === 'Internal' ? employee_id : 0;
+
+        const sql = `
+            INSERT INTO T_USER (
+                USER_TYPE, USER_CATEGORY, USER_NAME, USER_LOGIN, USER_PASSWORD,
+                USER_MOBILENO, USER_EMAILID, USER_EMPLOYEEID, USER_EUSERID
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `;
+        const values = [
+            userTypeCode, userCategoryCode, username, login_name, hashedPassword,
+            mobile_no || null, email_id || null, employeeId, creatorUserId
+        ];
+
+        await db.query(sql, values);
+
+        console.log(`✅ New user '${username}' created by User ID: ${creatorUserId}`);
+        res.status(201).json({ message: `User '${username}' created successfully!` });
+
+    } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+            console.error(`Error creating user: A unique field already exists (fallback).`);
+            return res.status(409).json({ message: 'This Login Name, Mobile, or Email is already taken.' });
+        }
+        
+        console.error("Error creating user:", err);
+        res.status(500).json({ message: 'Internal server error while creating user.' });
+    }
+});
 
 
 app.listen(port, () => {
