@@ -1,1152 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home</title>
     <link rel="icon" type="image/png" href="/IMAGE/Brandfavicon.png">
-    <style>
-        :root {
-            --primary-color: #2980b9;
-            --success-color: #27ae60;
-            --danger-color: #c0392b;
-            --secondary-color: #7f8c8d;
-            --sidebar-bg: #0a0202;
-            --navbar-bg: #ffffff;
-            --main-bg: #ecf0f1;
-            --card-bg: #ffffff;
-            --text-color: #316ca7;
-            --dark-text-color: #34495e; /* Added for read messages */
-            --light-text-color: #ffffff;
-            --border-color: #e0e0e0;
-            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            --navbar-height: 50px;
-            --sidebar-width: 260px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--main-bg);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .top-navbar { height: var(--navbar-height); width: 100%; background-color: var(--primary-color); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: fixed; top: 0; left: 0; z-index: 1001; }
-        .navbar-left { display: flex; align-items: center; position: relative; height: 100%; }
-        .sidebar-brand { position: absolute; left: 0; top: 0; height: 100%; background-color: transparent; padding: 8px 12px; border-radius: 6px; font-size: 1.4rem; font-weight: 600; color: var(--light-text-color); display: flex; align-items: center; overflow: hidden; white-space: nowrap; width: auto; transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out, color 0.5s ease-in-out, left 0.5s ease-in-out; }
-        .brand-logo { height: 35px; width: auto; margin-right: 8px; opacity: 1; transition: width 0.4s ease-in-out, opacity 0.3s ease, margin-right 0.4s ease-in-out; }
-        body.sidebar-is-closed .sidebar-brand { padding-left: 0; padding-right: 0; width: auto; }
-        .sidebar-brand .brand-suffix { display: inline-block; white-space: nowrap; overflow: hidden; max-width: 100px; opacity: 1; transition: max-width 0.5s ease-in-out, opacity 0.4s ease; color: #2980b9; }
-        body.sidebar-is-closed .sidebar-brand .brand-suffix { max-width: 0; opacity: 0; }
-        .navbar-interactive-area { display: flex; align-items: center; gap: 15px; transition: transform 0.5s ease-in-out; transform: translateX(160px); }
-        .hamburger-menu { font-size: 24px; cursor: pointer; background: none; border: none; color: #ffffff; padding: 8px; border-radius: 6px; transition: background-color 0.2s ease-in-out; z-index: 1002; }
-        .hamburger-menu:hover { background-color: rgba(255, 255, 255, 0.15); }
-        body:not(.sidebar-is-closed) .sidebar-brand { color: var(--primary-color); background-color: #f7f7f8; width: var(--sidebar-width); height: var(--navbar-height); left: -20px; padding: 0 12px 0 32px; }
-        body:not(.sidebar-is-closed) .navbar-interactive-area { transform: translateX(var(--sidebar-width)); }
-        .navbar-brand { font-size: 1rem; font-weight: 500; color: var(--light-text-color); padding: 8px 12px; border-radius: 6px; transition: background-color 0.2s ease-in-out; }
-        .navbar-brand:hover { background-color: rgba(255, 255, 255, 0.15); }
-
-        .navbar-right-items {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .navbar-clock {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--light-text-color);
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.2px;
-            transition: background-color 0.2s ease;
-        }
-        .navbar-clock:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .navbar-clock svg {
-            width: 20px;
-            height: 20px;
-            opacity: 1;
-        }
-
-        /* === NOTIFICATION STYLES START === */
-        .notification-wrapper {
-            position: relative;
-        }
-        .notification-icon {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .notification-icon:hover {
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-        .notification-icon svg {
-            width: 24px;
-            height: 24px;
-            color: var(--light-text-color);
-        }
-        .notification-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 18px;
-            height: 18px;
-            background-color: var(--danger-color);
-            color: var(--light-text-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            border: 2px solid var(--primary-color);
-        }
-        .notification-panel {
-            display: none;
-            position: absolute;
-            top: calc(100% + 5px);
-            right: 0;
-            width: 360px;
-            max-height: 400px;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1010;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            flex-direction: column;
-        }
-        .notification-panel.show {
-            display: flex;
-        }
-        .notification-header {
-            padding: 12px 15px;
-            font-weight: 600;
-            color: var(--danger-color);
-            border-bottom: 1px solid var(--border-color);
-            text-align: center;
-        }
-        /* NEW: Styles for the filter container and buttons */
-        .notification-filter-container {
-            display: flex;
-            padding: 8px;
-            gap: 8px;
-            background-color: var(--main-bg);
-            border-bottom: 1px solid var(--border-color);
-        }
-        .notification-filter {
-            flex-grow: 1;
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background-color: #fff;
-            color: var(--secondary-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .notification-filter:hover {
-            background-color: #e9e9e9;
-        }
-        .notification-filter.active {
-            background-color: var(--primary-color);
-            color: var(--light-text-color);
-            border-color: var(--primary-color);
-        }
-        .notification-list {
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-        .notification-item {
-            display: block;
-            padding: 12px 15px;
-            text-decoration: none;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s ease;
-            cursor: pointer;
-        }
-        .notification-item:hover {
-            background-color: var(--main-bg);
-        }
-        .notification-item:last-child {
-            border-bottom: none;
-        }
-        .notification-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--secondary-color);
-            margin-bottom: 6px;
-        }
-        .notification-from {
-            font-weight: 500;
-            max-width: 60%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .notification-subject {
-            font-size: 0.95rem;
-            color: var(--dark-text-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .notification-item.unread .notification-subject {
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        .no-notifications {
-            padding: 20px;
-            text-align: center;
-            color: var(--secondary-color);
-        }
-        /* === NOTIFICATION STYLES END === */
-
-        /* === MESSAGE DETAIL PANEL STYLES START === */
-        .message-detail-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 100%;
-            max-width: 450px;
-            height: 100%;
-            background-color: var(--card-bg);
-            z-index: 2100;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -4px 0 15px rgba(0,0,0,0.15);
-            transform: translateX(100%);
-            transition: transform 0.4s ease-in-out;
-            border-left: 1px solid var(--border-color);
-        }
-        .message-detail-panel.show {
-            transform: translateX(0);
-        }
-        .message-detail-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
-            gap: 15px;
-        }
-        .message-header-content {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-        .message-meta-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: var(--secondary-color);
-            padding-bottom: 4px;
-        }
-        #message-detail-from, #message-detail-to {
-            font-weight: 600;
-            color: var(--dark-text-color);
-        }
-         #message-detail-datetime {
-            font-size: 0.8rem;
-        }
-        .message-detail-header h3 {
-            margin: 0;
-            margin-top: 15px;
-            font-size: 1.2rem;
-            color: var(--dark-text-color);
-            line-height: 1.4;
-            word-break: break-word;
-        }
-        .message-detail-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            line-height: 1;
-            cursor: pointer;
-            color: var(--secondary-color);
-            padding: 0 5px;
-            flex-shrink: 0;
-        }
-        .message-detail-close:hover {
-            color: var(--danger-color);
-        }
-        .message-detail-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex-grow: 1;
-            line-height: 1.6;
-            color: var(--dark-text-color);
-            white-space: pre-wrap;
-        }
-        /* === MESSAGE DETAIL PANEL STYLES END === */
-
-        .user-profile-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .user-profile { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 5px 10px; border-radius: 6px; transition: background-color 0.2s ease-in-out; }
-        .user-profile:hover { background-color: rgba(255, 255, 255, 0.15); }
-        .user-profile img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-        .user-profile span { font-weight: 500; display: none; color: var(--light-text-color); }
-        .user-dropdown-arrow { width: 18px; height: 18px; color: var(--light-text-color); transition: transform 0.2s ease-in-out; margin-left: 2px; }
-        .user-profile.open .user-dropdown-arrow { transform: rotate(180deg); }
-        .user-dropdown-menu { display: none; flex-direction: column; position: absolute; top: calc(100% + 5px); right: 0; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1010; min-width: 220px; border: 1px solid var(--primary-color); padding: 5px; }
-        .user-dropdown-menu.show { display: flex; }
-        .user-dropdown-menu .dropdown-divider { height: 1px; background-color: var(--border-color); margin: 5px 0; }
-        .user-dropdown-menu > a, .user-dropdown-menu .nested-dropdown-toggle { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; color: var(--text-color); text-decoration: none; font-size: 0.95rem; transition: background-color 0.2s, border-color 0.2s; border: 1px solid var(--border-color); border-radius: 4px; margin: 2.5px 0; cursor: pointer; }
-        .user-dropdown-menu > a:hover, .user-dropdown-menu .has-nested-dropdown:hover > .nested-dropdown-toggle { background-color: var(--main-bg); border-color: var(--primary-color); }
-        .has-nested-dropdown { position: relative; }
-        .nested-dropdown-toggle svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
-        .nested-dropdown-menu { display: none; position: absolute; top: -6px; right: 100%; margin-right: 5px; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1020; min-width: 230px; border: 1px solid var(--primary-color); padding: 5px; }
-        .has-nested-dropdown:hover .nested-dropdown-menu { display: block; }
-        .nested-dropdown-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 15px; color: var(--text-color); text-decoration: none; font-size: 0.95rem; transition: background-color 0.2s; border-radius: 4px; }
-        .nested-dropdown-menu a:not(.active-company):hover { background-color: var(--main-bg); }
-        .nested-dropdown-menu a.active-company { font-weight: 500; color: var(--primary-color); background-color: #ecf0f1; cursor: default; }
-        .nested-dropdown-menu a .check-icon { width: 18px; height: 18px; color: var(--primary-color); stroke-width: 2.5; visibility: hidden; }
-        .nested-dropdown-menu a.active-company .check-icon { visibility: visible; }
-        @media (min-width: 576px) { .user-profile span { display: block; } }
-        .sidebar { width: var(--sidebar-width); background-color: var(--sidebar-bg); color: var(--light-text-color); position: fixed; top: var(--navbar-height); left: 0; height: calc(100vh - var(--navbar-height)); z-index: 1000; transform: translateX(0); transition: transform 0.5s ease-in-out; display: flex; flex-direction: column; }
-        body.sidebar-is-closed .sidebar { transform: translateX(-100%); }
-        .module-selector { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 10px; }
-        .module-icon { width: 40px; height: 40px; flex-shrink: 0; background-color: #ffffff; border-radius: 50%; padding: 2px; object-fit: contain; }
-        .module-wrapper { position: relative; flex-grow: 1; display: flex; flex-direction: column; }
-        .current-module { background-color: rgba(255, 255, 255, 0.05); border: 1px solid var(--light-text-color); border-radius: 6px; padding: 10px 15px; width: 100%; display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: var(--light-text-color); font-size: 1rem; font-weight: 500; }
-        .current-module svg { width: 16px; height: 16px; transition: transform 0.2s ease-in-out; }
-        .current-module.open svg { transform: rotate(180deg); }
-        .module-dropdown { display: none; position: absolute; width: 100%; top: 100%; left: 0; background-color: var(--sidebar-bg); border: 1px solid var(--light-text-color); border-radius: 6px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); z-index: 1010; max-height: 300px; overflow-y: auto; }
-        .module-dropdown.show { display: block; }
-        .module-dropdown a { display: block; padding: 12px 15px; color: var(--light-text-color); text-decoration: none; font-size: 0.9rem; }
-        .module-dropdown a:hover { background-color: var(--primary-color); }
-        .sidebar-nav { flex-grow: 1; overflow-y: auto; }
-        .sidebar-nav ul { list-style-type: none; padding-left: 0; }
-        .sidebar-nav li a { display: flex; align-items: center; padding: 14px 20px; color: var(--light-text-color); text-decoration: none; font-size: 0.95rem; transition: background-color 0.2s, padding 0.2s, color 0.2s; }
-        .sidebar-nav .has-submenu > a { justify-content: space-between; }
-        .sidebar-nav li a:hover { background-color: rgba(255, 255, 255, 0.1); }
-        #sidebar-menu-list > li > a { padding-left: 30px; color: #ffaf00; font-weight: 500; }
-        .sidebar-nav li.active > a { background-color: var(--primary-color); }
-        .sidebar-nav svg { width: 20px; height: 20px; margin-right: 15px; flex-shrink: 0; }
-        .submenu-arrow { width: 16px; height: 16px; transition: transform 0.3s ease; margin-right: 0; }
-        .submenu { list-style-type: none; background-color: rgba(0,0,0,0.2); max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; padding-left: 0; }
-        .submenu > li > a { color: var(--light-text-color) !important; font-weight: normal !important; padding: 6px 20px 6px 65px !important; }
-        .submenu .submenu > li > a { padding: 6px 20px 6px 85px !important; font-size: 0.9rem !important; }
-        .has-submenu.open > .submenu { max-height: 1000px; }
-        .has-submenu.open > a .submenu-arrow { transform: rotate(90deg); }
-        .main-content {
-            margin-top: var(--navbar-height);
-            margin-left: var(--sidebar-width);
-            padding: 25px;
-            width: calc(100% - var(--sidebar-width));
-            transition: margin-left 0.5s ease-in-out, width 0.5s ease-in-out;
-            flex: 1 0 auto;
-        }
-        body.sidebar-is-closed .main-content { margin-left: 0; width: 100%; }
-        .menu-item-content { display: flex; align-items: center; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background-color: #ffffff; padding: 25px 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 100%; max-width: 420px; }
-        .modal-content h2 { margin-top: 0; margin-bottom: 25px; color: var(--primary-color); text-align: center; font-size: 1.5rem; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #555; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
-        .form-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2); }
-        .form-group input:disabled { background-color: #ecf0f1; cursor: not-allowed; }
-        .password-input-container { position: relative; }
-        .password-toggle-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer; color: #95a5a6; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-        .password-toggle-icon:hover { color: var(--primary-color); }
-        .password-toggle-icon svg { width: 100%; height: 100%; }
-        .form-actions { display: flex; justify-content: center; gap: 15px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); }
-        .btn { padding: 10px 22px; font-size: 1rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s ease-in-out; text-decoration: none; text-align: center; color: var(--light-text-color); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-        .btn:active { transform: translateY(0); box-shadow: none; }
-        .btn svg { width: 20px; height: 20px; }
-        .btn-success { background-color: var(--success-color); }
-        .btn-success:hover { background-color: #2ecc71; }
-        .btn-secondary { background-color: var(--secondary-color); }
-        .btn-secondary:hover { background-color: #95a5a6; }
-
-        .site-footer {
-            background-color: var(--secondary-color);
-            color: var(--light-text-color);
-            padding: 15px 25px;
-            font-size: 0.9rem;
-            width: calc(100% - var(--sidebar-width));
-            margin-left: var(--sidebar-width);
-            transition: margin-left 0.5s ease-in-out, width 0.5s ease-in-out;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        body.sidebar-is-closed .site-footer {
-            margin-left: 0;
-            width: 100%;
-        }
-        .site-footer a {
-            color: var(--light-text-color);
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .site-footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="stylesheet" href="theme.css">
 </head>
-<body class="sidebar-is-closed">
-    <header class="top-navbar">
-        <div class="navbar-left">
-            <div class="sidebar-brand">
-                <img src="/IMAGE/Brandlogo.png" alt="Brand Logo" class="brand-logo">
-                <span>ZeroDrift</span><span class="brand-suffix">&nbsp;ERP</span>
+<body class="th-sidebar-is-closed">
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('userTheme');
+                if (savedTheme) {
+                    console.log('Applying theme from localStorage instantly.');
+                    const theme = JSON.parse(savedTheme);
+                    const root = document.documentElement;
+                    root.style.setProperty('--primary-color', theme.THEME_NAVBARBG);
+                    root.style.setProperty('--sidebar-bg', theme.THEME_SIDEBARBG);
+                    root.style.setProperty('--secondary-color', theme.THEME_FOOTERBG);
+                    root.style.setProperty('--module-dropdown-bg', theme.THEME_MODULEBG);
+                    root.style.setProperty('--navbar-font-color', theme.THEME_NAVBARFONTCLR);
+                    root.style.setProperty('--module-font-border-color', theme.THEME_CURRMODULEBGANDFONTCLR);
+                    root.style.setProperty('--menu-type-font-color', theme.THEME_MTRSCLR);
+                    root.style.setProperty('--menu-item-font-color', theme.THEME_CURRMODULEBGANDFONTCLR);
+                    root.style.setProperty('--menu-hover-bg', theme.THEME_MENUSUBMENUBG);
+                }
+            } catch (e) {
+                console.error('Failed to apply theme from localStorage:', e);
+            }
+        })();
+    </script>
+
+    <header class="th-top-navbar">
+        <div class="th-navbar-left">
+            <div class="th-sidebar-brand">
+                <img src="/IMAGE/Brandlogo.png" alt="Brand Logo" class="th-brand-logo">
+                <span>ZeroDrift</span><span class="th-brand-suffix">&nbsp;ERP</span>
             </div>
-            
-            <div class="navbar-interactive-area">
-                <button class="hamburger-menu" id="hamburger-menu">☰</button>
-                <div class="navbar-brand" id="company-brand-name">Loading...</div>
+            <div class="th-navbar-interactive-area">
+                <button class="th-hamburger-menu" id="th-hamburger-menu">☰</button>
+                <div class="th-navbar-brand" id="th-company-brand-name">Loading...</div>
             </div>
         </div>
-        <div class="navbar-right-items">
-            <div class="navbar-clock">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span id="live-time"></span>
-            </div>
+        <div class="th-navbar-right-items">
 
-            <div class="notification-wrapper" id="notification-wrapper">
-                <div class="notification-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            <div class="th-favorite-icon" id="th-favorites-icon" title="Favorites">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                </svg>
+            </div>
+            <div class="th-navbar-clock">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span id="th-live-time"></span>
+            </div>
+            <div class="th-contact-directory-icon" id="th-contact-directory-icon" title="Contact Directory">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+            </div>
+            <div class="th-notification-wrapper" id="th-notification-wrapper">
+                <div class="th-notification-icon" title="Your Messages">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
-                    <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+                    <span class="th-notification-badge" id="th-notification-badge" style="display: none;"></span>
                 </div>
-                <div class="notification-panel" id="notification-panel">
-                    <div class="notification-header">Your Message</div>
-                    <div class="notification-filter-container" id="notification-filter-container">
-                        <button class="notification-filter active" data-filter="all">All</button>
-                        <button class="notification-filter" data-filter="unread">Unread</button>
+                <div class="th-notification-panel" id="th-notification-panel">
+                    <div class="th-notification-header">Your Message</div>
+                    <div class="th-notification-filter-container" id="th-notification-filter-container">
+                        <button class="th-notification-filter" data-filter="all">All</button>
+                        <button class="th-notification-filter th-active" data-filter="unread">Unread</button>
                     </div>
-                    <div class="notification-list" id="notification-list">
-                    </div>
+                    <div class="th-notification-list" id="th-notification-list"></div>
                 </div>
             </div>
-            <div class="user-profile-container">
-                <div class="user-profile" id="user-profile-toggle">
+            <div class="th-tools-container">
+                <div class="th-tools-gear-icon" id="th-tools-gear-toggle" title="Tools">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-4.243-4.243l3.275-3.275a4.5 4.5 0 00-6.336 4.486c.046.58.023 1.193-.14 1.743m-2.132 2.132L5.586 5.586m12.828 12.828l-3.03-2.495" />
+                    </svg>
+                </div>
+                <div class="th-tools-dropdown-menu" id="th-tools-dropdown-menu">
+                    <a href="#" id="th-theme-change-option">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.95-4.243l-1.59-1.591M5.25 12H3m4.243-4.95l1.59-1.591M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                        </svg>
+                        <span>Change Theme</span>
+                    </a>
+                </div>
+            </div>
+            <div class="th-user-profile-container">
+                <div class="th-user-profile" id="th-user-profile-toggle">
                     <img src="/IMAGE/Usericon.png" alt="User PNG">
-                    <span id="user-profile-name">Loading...</span>
-                    <svg class="user-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <span id="th-user-profile-name">Loading...</span>
+                    <svg class="th-user-dropdown-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="2.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </div>
-                <div class="user-dropdown-menu" id="user-dropdown-menu">
-                    <div class="has-nested-dropdown">
-                        <a class="nested-dropdown-toggle">
+                <div class="th-user-dropdown-menu" id="th-user-dropdown-menu">
+                    <div class="th-has-nested-dropdown">
+                        <a class="th-nested-dropdown-toggle">
                             <span>Switch Company</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" style="width:16px; height:16px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3"
+                                stroke="currentColor" style="width:16px; height:16px;">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                             </svg>
                         </a>
-                        <div class="nested-dropdown-menu" id="company-list-container">
-                        </div>
+                        <div class="th-nested-dropdown-menu" id="th-company-list-container"></div>
                     </div>
-                    <div class="dropdown-divider"></div>
-                    <a href="#" id="change-password-link">Change Password</a>
-                    <a href="#" id="logout-button">Logout</a>
+                    <div class="th-dropdown-divider"></div>
+                    <a href="#" id="th-change-password-link">Change Password</a>
+                    <a href="#" id="th-logout-button">Logout</a>
                 </div>
             </div>
+
         </div>
     </header>
-
-    <aside class="sidebar" id="sidebar">
-        <div class="module-selector">
-            <img src="https://newdemo.nwayerp.org/mis_css/img/mis_icon/account_1.png" alt="Module Icon" class="module-icon" id="module-icon">
-            <div class="module-wrapper">
-                <button class="current-module" id="module-toggle">
-                    <span id="current-module-name">Loading...</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <aside class="th-sidebar" id="th-sidebar">
+        <div class="th-module-selector">
+            <img src="https://newdemo.nwayerp.org/mis_css/img/mis_icon/account_1.png" alt="Module Icon"
+                class="th-module-icon" id="th-module-icon">
+            <div class="th-module-wrapper">
+                <button class="th-current-module" id="th-module-toggle">
+                    <span id="th-current-module-name">Loading...</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
-                <div class="module-dropdown" id="module-dropdown"></div>
+                <div class="th-module-dropdown" id="th-module-dropdown"></div>
             </div>
         </div>
-        <nav class="sidebar-nav">
-             <ul id="sidebar-menu-list"></ul>
+        <nav class="th-sidebar-nav">
+            <ul id="th-sidebar-menu-list"></ul>
         </nav>
     </aside>
-
-    <main class="main-content">
-        </main>
-
-    <div id="change-password-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <form id="change-password-form">
+    <main class="th-main-content">
+    </main>
+    <div id="th-loader-overlay" class="th-loader-overlay" style="display: none;">
+        <div class="th-loader-spinner"></div>
+    </div>
+    <div id="th-change-password-modal" class="th-modal-overlay" style="display: none;">
+        <div class="th-modal-content">
+            <form id="th-change-password-form">
                 <h2>Change Your Password</h2>
-                <div class="form-group">
-                    <label for="modal-username">Username</label>
-                    <input type="text" id="modal-username" name="username" disabled>
+                <div class="th-form-group">
+                    <label for="th-modal-username">Username</label>
+                    <input type="text" id="th-modal-username" name="username" disabled>
                 </div>
-                <div class="form-group">
-                    <label for="modal-old-password">Old Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="modal-old-password" name="old_password" required>
-                        <span class="password-toggle-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </span>
+                <div class="th-form-group">
+                    <label for="th-modal-old-password">Old Password</label>
+                    <div class="th-password-input-container">
+                        <input type="password" id="th-modal-old-password" name="old_password" required>
+                        <span class="th-password-toggle-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg></span>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="modal-new-password">New Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="modal-new-password" name="new_password" required>
-                        <span class="password-toggle-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </span>
+                <div class="th-form-group">
+                    <label for="th-modal-new-password">New Password</label>
+                    <div class="th-password-input-container">
+                        <input type="password" id="th-modal-new-password" name="new_password" required>
+                        <span class="th-password-toggle-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg></span>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="modal-retype-password">Retype New Password</label>
-                    <div class="password-input-container">
-                        <input type="password" id="modal-retype-password" name="retype_password" required>
-                        <span class="password-toggle-icon">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </span>
+                <div class="th-form-group">
+                    <label for="th-modal-retype-password">Retype New Password</label>
+                    <div class="th-password-input-container">
+                        <input type="password" id="th-modal-retype-password" name="retype_password" required>
+                        <span class="th-password-toggle-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg></span>
                     </div>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                        Save
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="modal-close-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        Close
-                    </button>
+                <div class="th-form-actions">
+                    <button type="submit" class="th-btn th-btn-success"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg> Save</button>
+                    <button type="button" class="th-btn th-btn-secondary" id="th-modal-close-button"><svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg> Close</button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <div class="message-detail-panel" id="message-detail-panel">
-        <div class="message-detail-header">
-            <div class="message-header-content">
-                <div class="message-meta-line">
-                    <span id="message-detail-from"></span>
-                    <span id="message-detail-datetime"></span>
-                </div>
-                <div class="message-meta-line">
-                    <span id="message-detail-to"></span>
-                </div>
-                <h3 id="message-detail-subject"></h3>
+    <div class="th-message-detail-panel" id="th-message-detail-panel">
+        <div class="th-message-detail-header">
+            <div class="th-message-header-content">
+                <div class="th-message-meta-line"><span id="th-message-detail-from"></span><span
+                        id="th-message-detail-datetime"></span></div>
+                <div class="th-message-meta-line"><span id="th-message-detail-to"></span></div>
+                <h3 id="th-message-detail-subject"></h3>
             </div>
-            <button class="message-detail-close" id="message-detail-close-btn">&times;</button>
+            <button class="th-message-detail-close" id="th-message-detail-close-btn">&times;</button>
         </div>
-        <div class="message-detail-body" id="message-detail-body">
+        <div class="th-message-detail-body" id="th-message-detail-body"></div>
+    </div>
+    <div id="th-contact-directory-modal" class="th-modal-overlay" style="display: none;">
+        <div class="th-modal-content" style="max-width: 1100px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="th-contact-modal-header">
+                <h2>Contact Directory</h2>
+                <button type="button" class="th-btn-close" id="th-contact-dir-close-button">&times;</button>
+            </div>
+            <div class="th-contact-table-container">
+                <table class="th-contact-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Contact No</th>
+                            <th>Email ID</th>
+                            <th>Address</th>
+                            <th>Remark</th>
+                        </tr>
+                        <tr class="th-filter-row">
+                            <th><input type="text" class="th-column-filter" placeholder="Filter by Name..."
+                                    data-column="0"></th>
+                            <th><input type="text" class="th-column-filter" placeholder="Filter by Contact..."
+                                    data-column="1"></th>
+                            <th><input type="text" class="th-column-filter" placeholder="Filter by Email..."
+                                    data-column="2"></th>
+                            <th><input type="text" class="th-column-filter" placeholder="Filter by Address..."
+                                    data-column="3"></th>
+                            <th><input type="text" class="th-column-filter" placeholder="Filter by Remark..."
+                                    data-column="4"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="th-contact-directory-tbody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-
-    <footer class="site-footer">
-        <div class="footer-left">
-            <span>Copyright &copy; 2025 ZeroDrift Technologies Pvt. Ltd. All rights reserved.</span>
+    <div id="th-theme-change-modal" class="th-modal-overlay" style="display: none;">
+        <div class="th-modal-content" style="max-width: 450px;">
+            <div class="th-contact-modal-header">
+                <h2>Select a Theme</h2>
+                <button type="button" class="th-btn-close" id="th-theme-modal-close-button">&times;</button>
+            </div>
+            <div class="th-theme-list-container" id="th-theme-list-container">
+            </div>
         </div>
-        <div class="footer-right">
-            <span>To Create Issue: </span>
-            <a href="https://www.youtube.com" target="_blank">Issue Mng System</a>
-        </div>
+    </div>
+    <footer class="th-site-footer">
+        <div class="th-footer-left"><span>Copyright &copy; 2025 ZeroDrift Technologies Pvt. Ltd. All rights
+                reserved.</span></div>
+        <div class="th-footer-right"><span>To Create Issue: </span><a href="#" target="_blank"
+                id="th-issue-management-link">Issue Mng System</a></div>
     </footer>
-
-
     <script src="config.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        const fetchOptions = {
-            headers: { 'Authorization': `Bearer ${token}` }
-        };
-
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                localStorage.removeItem('authToken');
-                window.location.href = 'login.html';
-                return null;
-            }
-        }
-
-        const decodedToken = parseJwt(token);
-        if (!decodedToken) return;
-
-        // --- DOM ELEMENT SELECTORS ---
-        const userNameElement = document.getElementById('user-profile-name');
-        const hamburger = document.getElementById('hamburger-menu');
-        const moduleToggle = document.getElementById('module-toggle');
-        const currentModuleName = document.getElementById('current-module-name');
-        const sidebarMenuList = document.getElementById('sidebar-menu-list');
-        const userProfileToggle = document.getElementById('user-profile-toggle');
-        const userDropdownMenu = document.getElementById('user-dropdown-menu');
-        const logoutButton = document.getElementById('logout-button');
-        const companyBrandName = document.getElementById('company-brand-name');
-        const changePasswordLink = document.getElementById('change-password-link');
-        const moduleDropdown = document.getElementById('module-dropdown');
-        const moduleIcon = document.getElementById('module-icon');
-        const changePasswordModal = document.getElementById('change-password-modal');
-        const modalCloseButton = document.getElementById('modal-close-button');
-        const modalUsernameInput = document.getElementById('modal-username');
-        const changePasswordForm = document.getElementById('change-password-form');
-        const notificationWrapper = document.getElementById('notification-wrapper');
-        const notificationIcon = notificationWrapper.querySelector('.notification-icon');
-        const notificationPanel = document.getElementById('notification-panel');
-        const notificationBadge = document.getElementById('notification-badge');
-        const notificationList = document.getElementById('notification-list');
-        const notificationFilterContainer = document.getElementById('notification-filter-container'); // NEW
-        const messageDetailPanel = document.getElementById('message-detail-panel');
-        const messageDetailSubject = document.getElementById('message-detail-subject');
-        const messageDetailBody = document.getElementById('message-detail-body');
-        const messageDetailCloseBtn = document.getElementById('message-detail-close-btn');
-        const messageDetailFrom = document.getElementById('message-detail-from');
-        const messageDetailTo = document.getElementById('message-detail-to');
-        const messageDetailDatetime = document.getElementById('message-detail-datetime');
-
-        // NEW: Variable to store all fetched notifications
-        let allNotifications = [];
-        
-        // --- SVG ICONS ---
-        const icons = {
-            Dashboard: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>`,
-            Master: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0l-.07.042m15.482 0l.07.042m-15.552 0l-2.298-.447a1.125 1.125 0 01.402-2.173l2.128.414a1.125 1.125 0 001.103-.89l.17-1.005a1.125 1.125 0 011.123-.88h1.18c.613 0 1.123.495 1.123 1.109l.17 1.005a1.125 1.125 0 001.103.89l2.128-.415a1.125 1.125 0 01.402 2.172l-2.298.447m-15.552 0l15.552 0" /></svg>`,
-            Transaction: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
-            Reports: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" /></svg>`,
-            Setting: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 01 1.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.447.368.622.992.404 1.522l-1.296 2.247a1.125 1.125 0 01-1.37-.49l-1.217-.456c-.355-.133-.75-.072-1.075.124a6.57 6.57 0 01-.22.127c-.332.183-.582.495-.645.87l-.213 1.281c-.09.543-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01 .26-1.431l1.003-.827c.293-.24.438.613.438.995s-.145-.755-.438-.995l-1.003-.827a1.125 1.125 0 01-.404-1.522l1.296-2.247a1.125 1.125 0 01 1.37-.49l1.217.456c.355.133.75.072 1.075-.124.073-.044.146-.087.22-.127.332-.183.582.495.645.87l.213-1.281Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>`
-        };
-        const submenuArrowIcon = `<svg class="submenu-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>`;
-        const eyeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`;
-        const eyeSlashIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L6.228 6.228" /></svg>`;
-        const checkIconSVG = `<svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
-
-        if (decodedToken.name) {
-            userNameElement.textContent = decodedToken.name;
-        }
-
-        // --- All Functions are defined here ---
-        function formatDateTime(dateTimeString) {
-            if (!dateTimeString) return '';
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-            try {
-                return new Date(dateTimeString).toLocaleString('en-US', options);
-            } catch (e) {
-                return dateTimeString;
-            }
-        }
-
-        function formatDateTimeShort(dateTimeString) {
-            if (!dateTimeString) return '';
-            const date = new Date(dateTimeString);
-            const today = new Date();
-            const isToday = date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-            if (isToday) {
-                return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-            } else {
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }
-        }
-
-        function updateClock() {
-            const timeElement = document.getElementById('live-time');
-            if (!timeElement) return;
-            const now = new Date();
-            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            const day = days[now.getDay()];
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            hours = String(hours).padStart(2, '0');
-            const timeString = `${day} ${hours}:${minutes} ${ampm}`;
-            timeElement.textContent = timeString;
-        }
-
-        async function handleFetchError(response) {
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('authToken');
-                window.location.href = 'login.html';
-                throw new Error("Redirecting due to auth error.");
-            }
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred.' }));
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        }
-
-        async function populateCompanyName() {
-            try {
-                const response = await fetch(`${BASE_URL}/api/company`, fetchOptions);
-                const companyData = await handleFetchError(response);
-                companyBrandName.textContent = companyData?.COMPANY_NAME || 'Company';
-            } catch (error) {
-                if (!error.message.includes("Redirecting")) {
-                    companyBrandName.textContent = 'Not Found';
-                }
-            }
-        }
-
-        async function populateModules() {
-            try {
-                const response = await fetch(`${BASE_URL}/api/modules`, fetchOptions);
-                const modules = await handleFetchError(response);
-                
-                moduleDropdown.innerHTML = '';
-                modules.forEach(module => {
-                    const link = document.createElement('a');
-                    link.href = '#';
-                    link.textContent = module.MODULE_NAME;
-                    link.dataset.moduleId = module.MODULE_KID;
-                    link.dataset.moduleIcon = module.MODULE_ICONPATH;
-                    link.addEventListener('click', handleModuleSelection);
-                    moduleDropdown.appendChild(link);
-                });
-
-                if (modules.length > 0) {
-                    currentModuleName.textContent = modules[0].MODULE_NAME;
-                    if(modules[0].MODULE_ICONPATH) moduleIcon.src = modules[0].MODULE_ICONPATH;
-                    loadMenuForModule(modules[0].MODULE_KID);
-                } else {
-                    currentModuleName.textContent = "No Modules";
-                    sidebarMenuList.innerHTML = '<li><a>No menu items available for this company.</a></li>';
-                }
-            } catch (error) {
-                if (!error.message.includes("Redirecting")) {
-                    currentModuleName.textContent = "Error";
-                    sidebarMenuList.innerHTML = '<li><a>Error loading modules.</a></li>';
-                }
-            }
-        }
-
-        function handleModuleSelection(e) {
-            e.preventDefault();
-            currentModuleName.textContent = this.textContent;
-            if(this.dataset.moduleIcon) moduleIcon.src = this.dataset.moduleIcon;
-            moduleDropdown.classList.remove('show');
-            moduleToggle.classList.remove('open');
-            loadMenuForModule(this.dataset.moduleId);
-        }
-        
-        async function loadMenuForModule(moduleId) {
-            sidebarMenuList.innerHTML = '<li><a>Loading...</a></li>';
-            try {
-                const response = await fetch(`${BASE_URL}/api/menus?moduleId=${moduleId}`, fetchOptions);
-                const data = await handleFetchError(response);
-
-                const menuMap = new Map();
-                data.forEach(item => {
-                    if (!menuMap.has(item.MENU_KID)) {
-                        menuMap.set(item.MENU_KID, { ...item, submenus: [] });
-                    }
-                    if (item.SUBMENU_KID) {
-                        menuMap.get(item.MENU_KID).submenus.push({
-                            id: item.SUBMENU_KID, name: item.SUBMENU_NAME, redirectPage: item.SUBMENU_REDIRECTPAGE
-                        });
-                    }
-                });
-
-                const groupedByType = new Map();
-                menuMap.forEach(menu => {
-                    if (!groupedByType.has(menu.MENU_TYPE)) groupedByType.set(menu.MENU_TYPE, []);
-                    groupedByType.get(menu.MENU_TYPE).push(menu);
-                });
-                
-                renderSidebarMenu(groupedByType);
-            } catch (error) {
-                 if (!error.message.includes("Redirecting")) sidebarMenuList.innerHTML = '<li><a>Error loading menu.</a></li>';
-            }
-        }
-
-        function renderSidebarMenu(groupedData) {
-            sidebarMenuList.innerHTML = '';
-            if (groupedData.size === 0) {
-                sidebarMenuList.innerHTML = '<li><a>No menu items found.</a></li>';
-                return;
-            }
-
-            const menuOrder = ['Dashboard', 'Master', 'Transaction', 'Reports', 'Setting'];
-            
-            menuOrder.forEach(menuType => {
-                if (groupedData.has(menuType)) {
-                    const menuItems = groupedData.get(menuType);
-                    const iconSVG = icons[menuType] || '';
-
-                    const categoryLi = document.createElement('li');
-                    categoryLi.classList.add('has-submenu');
-                    categoryLi.innerHTML = `
-                        <a href="#">
-                            <span class="menu-item-content">${iconSVG}<span>${menuType}</span></span>
-                            ${submenuArrowIcon}
-                        </a>
-                        <ul class="submenu">
-                            ${menuItems.map(item => {
-                                if (item.submenus.length > 0) {
-                                    return `
-                                    <li class="has-submenu">
-                                        <a href="#">
-                                            <span>${item.MENU_NAME}</span>
-                                            ${submenuArrowIcon}
-                                        </a>
-                                        <ul class="submenu">
-                                            ${item.submenus.map(sub => `<li><a href="${sub.redirectPage || '#'}">${sub.name}</a></li>`).join('')}
-                                        </ul>
-                                    </li>`;
-                                } else {
-                                    return `<li><a href="${item.MENU_REDIRECTPAGE || '#'}"><span>${item.MENU_NAME}</span></a></li>`;
-                                }
-                            }).join('')}
-                        </ul>`;
-                    sidebarMenuList.appendChild(categoryLi);
-                }
-            });
-            initializeAccordion();
-        }
-
-        async function populateCompanySwitcher() {
-            const container = document.getElementById('company-list-container');
-            const currentCompanyId = decodedToken?.companyId;
-
-            if (!container || !currentCompanyId) {
-                container.innerHTML = '<a>Could not find company info.</a>';
-                return;
-            }
-            try {
-                const response = await fetch(`${BASE_URL}/api/companies-for-user`, fetchOptions);
-                const companies = await handleFetchError(response);
-                
-                container.innerHTML = ''; 
-                if (!companies || companies.length === 0) {
-                    container.innerHTML = '<a>No companies available.</a>';
-                    return;
-                }
-                
-                companies.forEach(company => {
-                    const link = document.createElement('a');
-                    link.href = '#';
-                    const isCurrent = company.COMPANY_KID === currentCompanyId;
-                    link.innerHTML = `${checkIconSVG}<span>${company.COMPANY_NAME}</span>`;
-                    
-                    if (isCurrent) {
-                        link.classList.add('active-company');
-                    } else {
-                        link.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            switchCompany(company.COMPANY_KID);
-                        });
-                    }
-                    container.appendChild(link);
-                });
-            } catch (error) {
-                if (!error.message.includes("Redirecting")) {
-                    container.innerHTML = '<a>Error loading companies.</a>';
-                }
-            }
-        }
-
-        async function switchCompany(companyKid) {
-            try {
-                const response = await fetch(`${BASE_URL}/api/user/switch-company`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
-                    body: JSON.stringify({ newCompanyKid: companyKid })
-                });
-                const data = await handleFetchError(response);
-                if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    window.location.reload();
-                } else {
-                    throw new Error("No new token received from server.");
-                }
-            } catch (error) {
-                alert(`Error switching company: ${error.message}`);
-            }
-        }
-
-        // NEW: Function to render the list based on a filter
-        function renderNotificationList(filter = 'all') {
-            notificationList.innerHTML = '';
-
-            const filteredNotifications = filter === 'unread' 
-                ? allNotifications.filter(n => n.NOTIFICATION_READYN === 'N')
-                : allNotifications;
-
-            if (filteredNotifications.length === 0) {
-                notificationList.innerHTML = `<div class="no-notifications">No ${filter === 'unread' ? 'unread' : ''} messages found.</div>`;
-                return;
-            }
-
-            filteredNotifications.forEach(n => {
-                const item = document.createElement('div');
-                item.classList.add('notification-item');
-                if (n.NOTIFICATION_READYN === 'N') {
-                    item.classList.add('unread');
-                }
-                item.dataset.id = n.NOTIFICATION_KID;
-                item.dataset.message = n.NOTIFICATION_MESSAGE; 
-                item.dataset.datetime = n.NOTIFICATION_EDATETIME;
-                item.dataset.fromUser = n.FROM_USERNAME || 'System'; 
-                
-                item.innerHTML = `
-                    <div class="notification-meta">
-                        <span class="notification-from">${n.FROM_USERNAME || 'System'}</span>
-                        <span class="notification-datetime">${formatDateTimeShort(n.NOTIFICATION_EDATETIME)}</span>
-                    </div>
-                    <div class="notification-subject">${n.NOTIFICATION_SUBJECT}</div>
-                `;
-                notificationList.appendChild(item);
-            });
-        }
-
-        async function fetchAndRenderNotifications() {
-            try {
-                const response = await fetch(`${BASE_URL}/api/notifications`, fetchOptions);
-                const notifications = await handleFetchError(response);
-                allNotifications = notifications; // Store all notifications
-
-                let unreadCount = allNotifications.filter(n => n.NOTIFICATION_READYN === 'N').length;
-                if (unreadCount > 0) {
-                    notificationBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                    notificationBadge.style.display = 'flex';
-                } else {
-                    notificationBadge.style.display = 'none';
-                }
-                
-                // Perform initial render with the 'all' filter
-                renderNotificationList('all');
-
-            } catch(error) {
-                if (!error.message.includes("Redirecting")) {
-                    notificationList.innerHTML = '<div class="no-notifications">Error loading messages.</div>';
-                }
-            }
-        }
-
-        async function markNotificationAsRead(notificationId) {
-            // Find the notification in our stored list and update it
-            const notification = allNotifications.find(n => n.NOTIFICATION_KID == notificationId);
-            if (!notification || notification.NOTIFICATION_READYN === 'Y') return; // Already read or not found
-
-            try {
-                await fetch(`${BASE_URL}/api/notifications/read`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
-                    body: JSON.stringify({ notificationId })
-                });
-                
-                // Update the local data to reflect the change immediately
-                notification.NOTIFICATION_READYN = 'Y';
-                
-                // Update the badge count
-                let unreadCount = allNotifications.filter(n => n.NOTIFICATION_READYN === 'N').length;
-                if (unreadCount > 0) {
-                    notificationBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                } else {
-                    notificationBadge.style.display = 'none';
-                }
-
-            } catch (error) {
-                console.error('Failed to mark notification as read:', error);
-            }
-        }
-
-        function openPasswordModal() {
-            modalUsernameInput.value = decodedToken.name || 'User';
-            changePasswordModal.style.display = 'flex';
-        }
-
-        function closePasswordModal() {
-            changePasswordModal.style.display = 'none';
-            changePasswordForm.reset();
-            document.querySelectorAll('.password-input-container').forEach(container => {
-                container.querySelector('input').type = 'password';
-                container.querySelector('.password-toggle-icon').innerHTML = eyeIconSVG;
-            });
-        }
-
-        // --- EVENT LISTENERS ---
-        hamburger.addEventListener('click', () => document.body.classList.toggle('sidebar-is-closed'));
-        moduleToggle.addEventListener('click', (e) => { e.stopPropagation(); moduleDropdown.classList.toggle('show'); moduleToggle.classList.toggle('open'); });
-        userProfileToggle.addEventListener('click', (e) => { e.stopPropagation(); userDropdownMenu.classList.toggle('show'); userProfileToggle.classList.toggle('open'); });
-        logoutButton.addEventListener('click', (e) => { e.preventDefault(); localStorage.removeItem('authToken'); window.location.href = 'login.html'; });
-        
-        changePasswordLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            userDropdownMenu.classList.remove('show');
-            userProfileToggle.classList.remove('open');
-            openPasswordModal();
-        });
-
-        modalCloseButton.addEventListener('click', closePasswordModal);
-        changePasswordModal.addEventListener('click', (e) => {
-            if (e.target === changePasswordModal) closePasswordModal();
-        });
-
-        changePasswordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const oldPassword = document.getElementById('modal-old-password').value;
-            const newPassword = document.getElementById('modal-new-password').value;
-            const retypePassword = document.getElementById('modal-retype-password').value;
-            
-            if (newPassword !== retypePassword) {
-                alert("New passwords do not match.");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${BASE_URL}/api/users/change-password`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
-                    body: JSON.stringify({ oldPassword, newPassword })
-                });
-                const data = await handleFetchError(response);
-                alert(data.message);
-                closePasswordModal();
-            } catch (error) {
-                alert(`Error: ${error.message}`);
-            }
-        });
-
-        document.querySelectorAll('.password-toggle-icon').forEach(icon => {
-            icon.addEventListener('click', () => {
-                const input = icon.previousElementSibling;
-                const isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                icon.innerHTML = isPassword ? eyeSlashIconSVG : eyeIconSVG;
-            });
-        });
-
-        notificationIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationPanel.classList.toggle('show');
-            userDropdownMenu.classList.remove('show');
-            userProfileToggle.classList.remove('open');
-            messageDetailPanel.classList.remove('show');
-        });
-
-        // NEW: Event listener for the filter buttons
-        notificationFilterContainer.addEventListener('click', (e) => {
-            if (e.target.matches('.notification-filter')) {
-                const filter = e.target.dataset.filter;
-                
-                // Update active button style
-                notificationFilterContainer.querySelector('.active').classList.remove('active');
-                e.target.classList.add('active');
-
-                // Re-render the list with the new filter
-                renderNotificationList(filter);
-            }
-        });
-
-
-        notificationList.addEventListener('click', async (e) => {
-            const targetItem = e.target.closest('.notification-item');
-            if (targetItem) {
-                const notificationId = targetItem.dataset.id;
-                await markNotificationAsRead(notificationId);
-                
-                // Find the latest data from our stored array
-                const notificationData = allNotifications.find(n => n.NOTIFICATION_KID == notificationId);
-
-                messageDetailSubject.textContent = notificationData.NOTIFICATION_SUBJECT;
-                messageDetailBody.textContent = notificationData.NOTIFICATION_MESSAGE;
-                messageDetailFrom.textContent = `From: ${notificationData.FROM_USERNAME || 'System'}`;
-                messageDetailTo.textContent = `To: ${decodedToken.name || 'Me'}`;
-                messageDetailDatetime.textContent = formatDateTime(notificationData.NOTIFICATION_EDATETIME);
-
-                messageDetailPanel.classList.add('show');
-                notificationPanel.classList.remove('show');
-
-                // After closing the detail panel, we might want to refresh the list view
-                // This will correctly remove the 'unread' style if the unread filter was active
-                const activeFilter = notificationFilterContainer.querySelector('.active').dataset.filter;
-                renderNotificationList(activeFilter);
-            }
-        });
-        
-        messageDetailCloseBtn.addEventListener('click', () => {
-            messageDetailPanel.classList.remove('show');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (moduleToggle && !moduleToggle.parentElement.contains(e.target)) {
-                moduleDropdown.classList.remove('show');
-                moduleToggle.classList.remove('open');
-            }
-            const companySwitcher = document.querySelector('.has-nested-dropdown');
-            if (userProfileToggle && !userProfileToggle.parentElement.contains(e.target) && companySwitcher && !companySwitcher.contains(e.target)) {
-                userDropdownMenu.classList.remove('show');
-                userProfileToggle.classList.remove('open');
-            }
-            if (notificationWrapper && !notificationWrapper.contains(e.target)) {
-                notificationPanel.classList.remove('show');
-            }
-            if (messageDetailPanel.classList.contains('show') && !messageDetailPanel.contains(e.target) && !e.target.closest('.notification-item')) {
-                 messageDetailPanel.classList.remove('show');
-            }
-        });
-        
-        function initializeAccordion() {
-            sidebarMenuList.querySelectorAll('.has-submenu > a').forEach(toggle => {
-                toggle.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const clickedLi = this.parentElement;
-                    const parentUl = clickedLi.parentElement;
-                    const wasOpen = clickedLi.classList.contains('open');
-                    Array.from(parentUl.children).forEach(siblingLi => {
-                        if (siblingLi.classList.contains('has-submenu')) {
-                            siblingLi.classList.remove('open');
-                            siblingLi.querySelectorAll('.open').forEach(openSub => openSub.classList.remove('open'));
-                        }
-                    });
-                    if (!wasOpen) {
-                        clickedLi.classList.add('open');
-                    }
-                });
-            });
-        }
-        
-        // --- INITIAL DATA LOAD ---
-        populateCompanyName();
-        populateModules();
-        populateCompanySwitcher();
-        fetchAndRenderNotifications();
-        updateClock(); 
-        setInterval(updateClock, 1000); 
-        setInterval(fetchAndRenderNotifications, 60000);
-    });
-    </script>
+    <script src="theme.js"></script>
 </body>
+
 </html>
